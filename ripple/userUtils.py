@@ -1,4 +1,5 @@
 import time
+from _mysql import ProgrammingError
 
 from common import generalUtils
 from common.constants import gameModes
@@ -441,12 +442,9 @@ def is2FAEnabled(userID):
 	:userID: user ID
 	:return: True if 2fa is enabled, else False
 	"""
-	result = glob.db.fetch("SELECT IFNULL((SELECT 1 FROM 2fa_telegram WHERE userid = %(userid)s LIMIT 1), 0) | IFNULL((SELECT 2 FROM 2fa_totp WHERE userid = %(userid)s AND enabled = 1 LIMIT 1), 0) AS x", {
+	return glob.db.fetch("SELECT 2fa_totp.userid FROM 2fa_totp WHERE userid = %(userid)s AND enabled = 1 LIMIT 1", {
 		"userid": userID
-	})
-	if result is None:
-		return False
-	return True if result["x"] > 0 else False
+	}) is not None
 
 def check2FA(userID, ip):
 	"""
@@ -797,6 +795,18 @@ def setPrivileges(userID, priv):
 	"""
 	glob.db.execute("UPDATE users SET privileges = %s WHERE id = %s LIMIT 1", [priv, userID])
 
+def getGroupPrivileges(groupName):
+	"""
+	Returns the privileges number of a group, by its name
+
+	:param groupName: name of the group
+	:return: privilege integer or `None` if the group doesn't exist
+	"""
+	groupPrivileges = glob.db.fetch("SELECT privileges FROM privileges_groups WHERE name = %s LIMIT 1", [groupName])
+	if groupPrivileges is None:
+		return None
+	return groupPrivileges["privileges"]
+
 def isInPrivilegeGroup(userID, groupName):
 	"""
 	Check if `userID` is in a privilege group.
@@ -806,17 +816,36 @@ def isInPrivilegeGroup(userID, groupName):
 	:param groupName: privilege group name
 	:return: True if `userID` is in `groupName`, else False
 	"""
-	groupPrivileges = glob.db.fetch("SELECT privileges FROM privileges_groups WHERE name = %s LIMIT 1", [groupName])
+	groupPrivileges = getGroupPrivileges(groupName)
 	if groupPrivileges is None:
 		return False
-	groupPrivileges = groupPrivileges["privileges"]
-	userToken = glob.tokens.getTokenFromUserID(userID)
+	try:
+		userToken = glob.tokens.getTokenFromUserID(userID)
+	except AttributeError:
+		# LETS compatibility
+		userToken = None
+
 	if userToken is not None:
 		userPrivileges = userToken.privileges
 	else:
 		userPrivileges = getPrivileges(userID)
 	return userPrivileges & groupPrivileges == groupPrivileges
 
+def isInAnyPrivilegeGroup(userID, groups):
+	"""
+	Checks if a user is in at least one of the specified groups
+
+	:param userID: id of the user
+	:param groups: groups list or tuple
+	:return: `True` if `userID` is in at least one of the specified groups, otherwise `False`
+	"""
+	userPrivileges = getPrivileges(userID)
+	return any(
+		userPrivileges & x == x
+		for x in (
+			getGroupPrivileges(y) for y in groups
+		) if x is not None
+	)
 
 def logHardware(userID, hashes, activation = False):
 	"""
@@ -1091,6 +1120,26 @@ def removeFromLeaderboard(userID):
 		glob.redis.zrem("ripple:leaderboard:{}".format(mode), str(userID))
 		if country is not None and len(country) > 0 and country != "xx":
 			glob.redis.zrem("ripple:leaderboard:{}:{}".format(mode, country), str(userID))
+
+def deprecateTelegram2Fa(userID):
+	"""
+	Checks whether the user has enabled telegram 2fa on his account.
+	If so, disables 2fa and returns True.
+	If not, return False.
+
+	:param userID: id of the user
+	:return: True if 2fa has been disabled from the account otherwise False
+	"""
+	try:
+		telegram2Fa = glob.db.fetch("SELECT id FROM 2fa_telegram WHERE userid = %s LIMIT 1", (userID,))
+	except ProgrammingError:
+		# The table doesnt exist
+		return False
+
+	if telegram2Fa is not None:
+		glob.db.execute("DELETE FROM 2fa_telegram WHERE userid = %s LIMIT 1", (userID,))
+		return True
+	return False
 
 def unlockAchievement(userID, achievementID):
 	glob.db.execute("INSERT INTO users_achievements (user_id, achievement_id, `time`) VALUES"
