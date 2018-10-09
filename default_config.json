@@ -28,9 +28,8 @@
 			"FADEIN": true,
 			"RANDOM": true,
 			"SCOREV2": false,
-			"LASTMOD": false,
 			"AUTOPLAY": false,
-			"CINEMA": false
+			"LASTMOD": false
 		}
 	},
 	"lets": {
