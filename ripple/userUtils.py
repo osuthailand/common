@@ -1401,3 +1401,31 @@ def getClan(userID):
 	if clanInfo is None:
 		return username
 	return "[" + clanInfo["tag"] + "] " + username
+
+def updateTotalHits(userID=0, gameMode=gameModes.STD, newHits=0, score=None):
+	if score is None and userID == 0:
+		raise ValueError("Either score or userID must be provided")
+	if score is not None:
+		newHits = score.c50 + score.c100 + score.c300
+		gameMode = score.gameMode
+		userID = score.playerUserID
+	glob.db.execute(
+		"UPDATE users_stats SET total_hits_{gm} = total_hits_{gm} + %s WHERE id = %s LIMIT 1".format(
+			gm=gameModes.getGameModeForDB(gameMode)
+		),
+		(newHits, userID)
+	)
+
+def updateTotalHitsRX(userID=0, gameMode=gameModes.STD, newHits=0, score=None):
+	if score is None and userID == 0:
+		raise ValueError("Either score or userID must be provided")
+	if score is not None:
+		newHits = score.c50 + score.c100 + score.c300
+		gameMode = score.gameMode
+		userID = score.playerUserID
+	glob.db.execute(
+		"UPDATE rx_stats SET total_hits_{gm} = total_hits_{gm} + %s WHERE id = %s LIMIT 1".format(
+			gm=gameModes.getGameModeForDB(gameMode)
+		),
+		(newHits, userID)
+	)
