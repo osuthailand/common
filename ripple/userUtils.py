@@ -516,7 +516,6 @@ def updateStats(userID, score_):
 		# Update pp
 		updatePP(userID, score_.gameMode)
 
-
 def updateStatsRx(userID, score_):
 	"""
 	Update stats (playcount, total score, ranked score, level bla bla)
@@ -566,6 +565,20 @@ def updateStatsRx(userID, score_):
 
 		# Update pp
 		updatePPRelax(userID, score_.gameMode)
+
+def incrementUserBeatmapPlaycount(userID, gameMode, beatmapID):
+	glob.db.execute(
+		"INSERT INTO users_beatmap_playcount (user_id, beatmap_id, game_mode, playcount) "
+		"VALUES (%s, %s, %s, 1) ON DUPLICATE KEY UPDATE playcount = playcount + 1",
+		(userID, beatmapID, gameMode)
+	)
+	
+def incrementUserBeatmapPlaycountRX(userID, gameMode, beatmapID):
+	glob.db.execute(
+		"INSERT INTO rx_beatmap_playcount (user_id, beatmap_id, game_mode, playcount) "
+		"VALUES (%s, %s, %s, 1) ON DUPLICATE KEY UPDATE playcount = playcount + 1",
+		(userID, beatmapID, gameMode)
+	)
 
 def updateLatestActivity(userID):
 	"""
