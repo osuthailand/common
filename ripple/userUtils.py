@@ -34,6 +34,32 @@ def getUserStats(userID, gameMode):
 	# Return stats + game rank
 	return stats
 
+def getUserStatsRx(userID, gameMode):
+	"""
+	Get all user stats relative to `gameMode`
+
+	:param userID:
+	:param gameMode: game mode number
+	:return: dictionary with result
+	"""
+	modeForDB = gameModes.getGameModeForDB(gameMode)
+
+	# Get stats
+	stats = glob.db.fetch("""SELECT
+						ranked_score_{gm}_rx AS rankedScore,
+						avg_accuracy_{gm}_rx AS accuracy,
+						playcount_{gm}_rx AS playcount,
+						total_score_{gm}_rx AS totalScore,
+						pp_{gm}_rx AS pp
+						FROM users_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
+
+	# Get game rank
+	stats["gameRank"] = getGameRankRx(userID, gameMode)
+
+	# Return stats + game rank
+	return stats
+
+	
 def getIDSafe(_safeUsername):
 	"""
 	Get user ID from a safe username
@@ -267,6 +293,30 @@ def calculatePP(userID, gameMode):
 
 	return totalPP
 
+def calculatePPRelax(userID, gameMode):
+	"""
+	Calculate userID's total PP for gameMode
+
+	:param userID: user id
+	:param gameMode: game mode number
+	:return: total PP
+	"""
+	# Get best pp scores
+	bestPPScores = glob.db.fetchAll(
+		"SELECT pp FROM scores_relax WHERE userid = %s AND play_mode = %s AND completed = 3 ORDER BY pp DESC LIMIT 500",
+		[userID, gameMode])
+
+	# Calculate weighted PP
+	totalPP = 0
+	if bestPPScores is not None:
+		k = 0
+		for i in bestPPScores:
+			new = round(round(i["pp"]) * 0.95 ** k)
+			totalPP += new
+			k += 1
+
+	return totalPP
+	
 def updateAccuracy(userID, gameMode):
 	"""
 	Update accuracy value for userID relative to gameMode in DB
@@ -296,6 +346,22 @@ def updatePP(userID, gameMode):
 	mode = scoreUtils.readableGameMode(gameMode)
 	glob.db.execute("UPDATE users_stats SET pp_{}=%s WHERE id = %s LIMIT 1".format(mode), [newPP, userID])
 
+def updatePPRelax(userID, gameMode):
+	"""
+	Update userID's pp with new value
+
+	:param userID: user id
+	:param gameMode: game mode number
+	"""
+	# Make sure the user exists
+	# if not exists(userID):
+	#	return
+
+	# Get new total PP and update db
+	newPP = calculatePPRelax(userID, gameMode)
+	mode = scoreUtils.readableGameMode(gameMode)
+	glob.db.execute("UPDATE users_stats SET pp_{}_rx=%s WHERE id = %s LIMIT 1".format(mode), [newPP, userID])
+	
 def updateStats(userID, __score):
 	"""
 	Update stats (playcount, total score, ranked score, level bla bla)
@@ -334,6 +400,44 @@ def updateStats(userID, __score):
 		# Update pp
 		updatePP(userID, __score.gameMode)
 
+def updateStatsRx(userID, __score):
+	"""
+	Update stats (playcount, total score, ranked score, level bla bla)
+	with data relative to a score object
+
+	:param userID:
+	:param __score: score object
+	"""
+
+	# Make sure the user exists
+	if not exists(userID):
+		log.warning("User {} doesn't exist.".format(userID))
+		return
+
+	# Get gamemode for db
+	mode = scoreUtils.readableGameMode(__score.gameMode)
+
+	# Update total score and playcount
+	glob.db.execute(
+		"UPDATE users_stats SET total_score_{m}_rx=total_score_{m}_rx+%s, playcount_{m}_rx=playcount_{m}_rx+1 WHERE id = %s LIMIT 1".format(
+			m=mode), [__score.score, userID])
+
+	# Calculate new level and update it
+	updateLevel(userID, __score.gameMode)
+
+	# Update level, accuracy and ranked score only if we have passed the song
+	if __score.passed:
+		# Update ranked score
+		glob.db.execute(
+			"UPDATE users_stats SET ranked_score_{m}_rx=ranked_score_{m}_rx+%s WHERE id = %s LIMIT 1".format(m=mode),
+			[__score.rankedScoreIncrease, userID])
+
+		# Update accuracy
+		updateAccuracy(userID, __score.gameMode)
+
+		# Update pp
+		updatePPRelax(userID, __score.gameMode)
+		
 def updateLatestActivity(userID):
 	"""
 	Update userID's latest activity to current UNIX time
@@ -669,6 +773,19 @@ def getGameRank(userID, gameMode):
 	else:
 		return int(position) + 1
 
+def getGameRankRx(userID, gameMode):
+	"""
+	Get `userID`'s **in-game rank** (eg: #1337) relative to gameMode
+	:param userID: user id
+	:param gameMode: game mode number
+	:return: game rank
+	"""
+	position = glob.redis.zrevrank("ripple:leaderboard_relax:{}".format(gameModes.getGameModeForDB(gameMode)), userID)
+	if position is None:
+		return 0
+	else:
+		return int(position) + 1
+		
 def getPlaycount(userID, gameMode):
 	"""
 	Get `userID`'s playcount relative to `gameMode`
