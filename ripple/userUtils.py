@@ -46,10 +46,10 @@ def getUserStatsRx(userID, gameMode):
 
 	# Get stats
 	stats = glob.db.fetch("""SELECT
-						ranked_score_{gm}_rx AS rankedScore,
-						avg_accuracy_{gm}_rx AS accuracy,
-						playcount_{gm}_rx AS playcount,
-						total_score_{gm}_rx AS totalScore,
+						ranked_score_{gm} AS rankedScore,
+						avg_accuracy_{gm} AS accuracy,
+						playcount_{gm} AS playcount,
+						total_score_{gm} AS totalScore,
 						pp_{gm}_rx AS pp
 						FROM users_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
 
