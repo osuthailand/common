@@ -419,7 +419,7 @@ def updateStatsRx(userID, __score):
 
 	# Update total score and playcount
 	glob.db.execute(
-		"UPDATE users_stats SET total_score_{m}_rx=total_score_{m}_rx+%s, playcount_{m}_rx=playcount_{m}_rx+1 WHERE id = %s LIMIT 1".format(
+		"UPDATE users_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1 WHERE id = %s LIMIT 1".format(
 			m=mode), [__score.score, userID])
 
 	# Calculate new level and update it
@@ -429,7 +429,7 @@ def updateStatsRx(userID, __score):
 	if __score.passed:
 		# Update ranked score
 		glob.db.execute(
-			"UPDATE users_stats SET ranked_score_{m}_rx=ranked_score_{m}_rx+%s WHERE id = %s LIMIT 1".format(m=mode),
+			"UPDATE users_stats SET ranked_score_{m}=ranked_score_{m}+%s WHERE id = %s LIMIT 1".format(m=mode),
 			[__score.rankedScoreIncrease, userID])
 
 		# Update accuracy
