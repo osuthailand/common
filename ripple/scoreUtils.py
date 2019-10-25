@@ -63,4 +63,6 @@ def readableMods(m):
 		r += "SO"
 	if m & mods.TOUCHSCREEN > 0:
 		r += "TD"
+	if m & mods.RELAX > 0:
+		r += "RX"
 	return r
