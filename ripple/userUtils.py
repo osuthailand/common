@@ -1425,3 +1425,17 @@ def updateAchievementsVersion(userID):
 	glob.db.execute("UPDATE users SET achievements_version = %s WHERE id = %s LIMIT 1", [
 		glob.ACHIEVEMENTS_VERSION, userID
 	])
+
+def getClan(userID):
+	"""
+	Get userID's clan
+	
+	:param userID: user id
+	:return: username or None
+	"""
+	clanInfo = glob.db.fetch("SELECT clans.tag, clans.id, user_clans.clan, user_clans.user FROM user_clans LEFT JOIN clans ON clans.id = user_clans.clan WHERE user_clans.user = %s LIMIT 1", [userID])
+	username = getUsername(userID)
+	
+	if clanInfo is None:
+		return username
+	return "[" + clanInfo["tag"] + "] " + username
