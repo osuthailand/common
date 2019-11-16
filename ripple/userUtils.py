@@ -460,19 +460,6 @@ def updateAccuracyRX(userID, gameMode):
 	mode = scoreUtils.readableGameMode(gameMode)
 	glob.db.execute("UPDATE rx_stats SET avg_accuracy_{m} = %s WHERE id = %s LIMIT 1".format(m=mode),
 					[newAcc, userID])   
- 
-def updateAccuracyAP(userID, gameMode):
-	"""
-	Update accuracy value for userID relative to gameMode in DB
- 
-	:param userID: user id
-	:param gameMode: gameMode number
-	:return:
-	"""
-	newAcc = calculateAccuracyAP(userID, gameMode)
-	mode = scoreUtils.readableGameMode(gameMode)
-	glob.db.execute("UPDATE users_stats SET avg_accuracy_{m}_ap = %s WHERE id = %s LIMIT 1".format(m=mode),
-					[newAcc, userID])
 					
 def updatePP(userID, gameMode):
 	"""
