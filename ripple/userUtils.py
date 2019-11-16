@@ -1,7 +1,10 @@
 import time
 import requests
 import json
-from _mysql import ProgrammingError
+try:
+    from pymysql.err import ProgrammingError
+except ImportError:
+    from MySQLdb._exceptions import ProgrammingError
 
 from common import generalUtils
 from common.constants import gameModes
