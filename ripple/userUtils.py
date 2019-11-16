@@ -80,7 +80,7 @@ def getUserStatsRx(userID, gameMode):
 							playcount_{gm} AS playcount,
 							total_score_{gm} AS totalScore,
 							pp_{gm} AS pp
-							FROM users_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
+							FROM rx_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
 		
 	else:
  
