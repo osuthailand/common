@@ -83,18 +83,18 @@ def getUserStatsRx(userID, gameMode):
 							playcount_{gm} AS playcount,
 							total_score_{gm} AS totalScore,
 							pp_{gm} AS pp
-							FROM rx_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
+							FROM users_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
 		
 	else:
  
 		# Get stats
 		stats = glob.db.fetch("""SELECT
-								ranked_score_{gm} AS rankedScore,
-								avg_accuracy_{gm} AS accuracy,
-								playcount_{gm} AS playcount,
-								total_score_{gm} AS totalScore,
-								pp_{gm} AS pp
-								FROM rx_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
+							ranked_score_{gm} AS rankedScore,
+							avg_accuracy_{gm} AS accuracy,
+							playcount_{gm} AS playcount,
+							total_score_{gm} AS totalScore,
+							pp_{gm} AS pp
+							FROM rx_stats WHERE id = %s LIMIT 1""".format(gm=modeForDB), [userID])
 
 	# Get game rank
 	stats["gameRank"] = getGameRankRx(userID, gameMode)
