@@ -461,7 +461,7 @@ def updatePPRelax(userID, gameMode):
 	glob.db.execute(
 		"UPDATE rx_stats SET pp_{}=%s WHERE id = %s LIMIT 1".format(scoreUtils.readableGameMode(gameMode)),
 		(
-			calculatePP(userID, gameMode),
+			calculatePPRelax(userID, gameMode),
 			userID
 		)
 	)
@@ -631,6 +631,19 @@ def incrementReplaysWatched(userID, gameMode):
 	mode = scoreUtils.readableGameMode(gameMode)
 	glob.db.execute(
 		"UPDATE users_stats SET replays_watched_{mode}=replays_watched_{mode}+1 WHERE id = %s LIMIT 1".format(
+			mode=mode), [userID])
+
+def incrementReplaysWatchedRX(userID, gameMode):
+	"""
+	Increment userID's replays watched by others relative to gameMode
+
+	:param userID: user id
+	:param gameMode: game mode number
+	:return:
+	"""
+	mode = scoreUtils.readableGameMode(gameMode)
+	glob.db.execute(
+		"UPDATE rx_stats SET replays_watched_{mode}=replays_watched_{mode}+1 WHERE id = %s LIMIT 1".format(
 			mode=mode), [userID])
 
 def getAqn(userID):
