@@ -520,27 +520,41 @@ def updateStats(userID, score_, beatmap_=None):
 		updatePP(userID, score_.gameMode)
 
 
-def updateStatsRx(userID, score_):
+def updateStatsRx(userID, score_, beatmap_=None):
 	"""
 	Update stats (playcount, total score, ranked score, level bla bla)
 	with data relative to a score object
 
 	:param userID:
 	:param score_: score object
+	:param beatmap_: beatmap object. Optional. If not passed, it'll be determined by score_.
 	"""
 
 	# Make sure the user exists
 	if not exists(userID):
 		log.warning("User {} doesn't exist.".format(userID))
 		return
+		
+	if beatmap_ is None:
+        beatmap_ = objects.beatmap.beatmap(score_.fileMd5, 0)
 
 	# Get gamemode for db
 	mode = scoreUtils.readableGameMode(score_.gameMode)
 
-	# Update total score and playcount
+	# Update total score, playcount and play time
+	realMapLength = beatmap_.hitLength
+    if (score_.mods & mods.DOUBLETIME) > 0:
+        realMapLength //= 1.5
+    elif (score_.mods & mods.HALFTIME) > 0:
+        realMapLength //= 0.75
 	glob.db.execute(
-		"UPDATE rx_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1 WHERE id = %s LIMIT 1".format(
-			m=mode), [score_.score, userID])
+		"UPDATE rx_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1, "
+		"playtime_{m} = playtime_{m} + %s "
+        "WHERE id = %s LIMIT 1".format(
+            m=mode
+        ),
+        (score_.score, realMapLength, userID)
+    )
 
 	# Calculate new level and update it
 	updateLevelRX(userID, score_.gameMode)
@@ -550,7 +564,8 @@ def updateStatsRx(userID, score_):
 		# Update ranked score
 		glob.db.execute(
 			"UPDATE rx_stats SET ranked_score_{m}=ranked_score_{m}+%s WHERE id = %s LIMIT 1".format(m=mode),
-			[score_.rankedScoreIncrease, userID])
+			(score_.rankedScoreIncrease, userID)
+		)
 
 		# Update accuracy
 		updateAccuracyRX(userID, score_.gameMode)
