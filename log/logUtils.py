@@ -145,16 +145,10 @@ def rap(userID, message, discord=False, through=None):
 	:param through: through string. Default: FokaBot
 	:return:
 	"""
-<<<<<<< HEAD
 	if through is None: #Set default messager to bot account
 		through = glob.BOT_NAME
 
-	glob.db.execute("INSERT INTO rap_logs (id, userid, text, datetime, through) VALUES (NULL, %s, %s, %s, %s)", [userID, message, int(time.time()), through])
-	username = userUtils.getUsername(userID)
-	logMessage("{} {}".format(username, message), discord=True)
-=======
 	import common.ripple
 	glob.db.execute("INSERT INTO rap_logs (id, userid, text, datetime, through) VALUES (NULL, %s, %s, %s, %s)", [userID, message, int(time.time()), through])
 	username = common.ripple.userUtils.getUsername(userID)
 	logMessage("{} {}".format(username, message), discord=discord)
->>>>>>> bf9822d... Add play time
