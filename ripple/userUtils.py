@@ -403,7 +403,7 @@ def calculatePPRelax(userID, gameMode):
 	:return: total PP
 	"""
 	return sum(round(round(row["pp"]) * 0.95 ** i) for i, row in enumerate(glob.db.fetchAll(
-		"SELECT pp FROM scores LEFT JOIN(beatmaps) USING(beatmap_md5) "
+		"SELECT pp FROM scores_relax LEFT JOIN(beatmaps) USING(beatmap_md5) "
 		"WHERE userid = %s AND play_mode = %s AND completed = 3 AND ranked >= 2 "
 		"ORDER BY pp DESC LIMIT 500",
 		(userID, gameMode)
@@ -460,12 +460,12 @@ def updatePPRelax(userID, gameMode):
 	glob.db.execute(
 		"UPDATE rx_stats SET pp_{}=%s WHERE id = %s LIMIT 1".format(scoreUtils.readableGameMode(gameMode)),
 		(
-			calculatePP(userID, gameMode),
+			calculatePPRelax(userID, gameMode),
 			userID
 		)
 	)
 
-def updateStats(userID, score_, beatmap_=None):
+def updateStats(userID, score_):
 	"""
 	Update stats (playcount, total score, ranked score, level bla bla)
 	with data relative to a score object
@@ -480,25 +480,22 @@ def updateStats(userID, score_, beatmap_=None):
 		log.warning("User {} doesn't exist.".format(userID))
 		return
 
-	if beatmap_ is None:
-		beatmap_ = objects.beatmap.beatmap(score_.fileMd5, 0)
-
 	# Get gamemode for db
 	mode = scoreUtils.readableGameMode(score_.gameMode)
 
 	# Update total score, playcount and play time
-	realMapLength = beatmap_.hitLength
-	if (score_.mods & mods.DOUBLETIME) > 0:
-		realMapLength //= 1.5
-	elif (score_.mods & mods.HALFTIME) > 0:
-		realMapLength //= 0.75
+	if score_.playTime is not None:
+		realPlayTime = score_.playTime
+	else:
+		realPlayTime = score_.fullPlayTime
+
 	glob.db.execute(
 		"UPDATE users_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1, "
 		"playtime_{m} = playtime_{m} + %s "
 		"WHERE id = %s LIMIT 1".format(
 			m=mode
 		),
-		(score_.score, realMapLength, userID)
+		(score_.score, realPlayTime, userID)
 	)
 
 	# Calculate new level and update it
@@ -518,8 +515,7 @@ def updateStats(userID, score_, beatmap_=None):
 		# Update pp
 		updatePP(userID, score_.gameMode)
 
-
-def updateStatsRx(userID, score_, beatmap_=None):
+def updateStatsRx(userID, score_):
 	"""
 	Update stats (playcount, total score, ranked score, level bla bla)
 	with data relative to a score object
@@ -533,26 +529,23 @@ def updateStatsRx(userID, score_, beatmap_=None):
 	if not exists(userID):
 		log.warning("User {} doesn't exist.".format(userID))
 		return
-		
-	if beatmap_ is None:
-		beatmap_ = objects.beatmap.beatmap(score_.fileMd5, 0)
 
 	# Get gamemode for db
 	mode = scoreUtils.readableGameMode(score_.gameMode)
 
 	# Update total score, playcount and play time
-	realMapLength = beatmap_.hitLength
-	if (score_.mods & mods.DOUBLETIME) > 0:
-		realMapLength //= 1.5
-	elif (score_.mods & mods.HALFTIME) > 0:
-		realMapLength //= 0.75
+	if score_.playTime is not None:
+		realPlayTime = score_.playTime
+	else:
+		realPlayTime = score_.fullPlayTime
+
 	glob.db.execute(
 		"UPDATE rx_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1, "
 		"playtime_{m} = playtime_{m} + %s "
 		"WHERE id = %s LIMIT 1".format(
             m=mode
         ),
-        (score_.score, realMapLength, userID)
+        (score_.score, realPlayTime, userID)
     )
 
 	# Calculate new level and update it
@@ -571,6 +564,20 @@ def updateStatsRx(userID, score_, beatmap_=None):
 
 		# Update pp
 		updatePPRelax(userID, score_.gameMode)
+
+def incrementUserBeatmapPlaycount(userID, gameMode, beatmapID):
+	glob.db.execute(
+		"INSERT INTO users_beatmap_playcount (user_id, beatmap_id, game_mode, playcount) "
+		"VALUES (%s, %s, %s, 1) ON DUPLICATE KEY UPDATE playcount = playcount + 1",
+		(userID, beatmapID, gameMode)
+	)
+	
+def incrementUserBeatmapPlaycountRX(userID, gameMode, beatmapID):
+	glob.db.execute(
+		"INSERT INTO rx_beatmap_playcount (user_id, beatmap_id, game_mode, playcount) "
+		"VALUES (%s, %s, %s, 1) ON DUPLICATE KEY UPDATE playcount = playcount + 1",
+		(userID, beatmapID, gameMode)
+	)
 
 def updateLatestActivity(userID):
 	"""
@@ -623,6 +630,19 @@ def incrementReplaysWatched(userID, gameMode):
 	mode = scoreUtils.readableGameMode(gameMode)
 	glob.db.execute(
 		"UPDATE users_stats SET replays_watched_{mode}=replays_watched_{mode}+1 WHERE id = %s LIMIT 1".format(
+			mode=mode), [userID])
+
+def incrementReplaysWatchedRX(userID, gameMode):
+	"""
+	Increment userID's replays watched by others relative to gameMode
+
+	:param userID: user id
+	:param gameMode: game mode number
+	:return:
+	"""
+	mode = scoreUtils.readableGameMode(gameMode)
+	glob.db.execute(
+		"UPDATE rx_stats SET replays_watched_{mode}=replays_watched_{mode}+1 WHERE id = %s LIMIT 1".format(
 			mode=mode), [userID])
 
 def getAqn(userID):
