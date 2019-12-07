@@ -550,7 +550,7 @@ def updateStatsRx(userID, score_, beatmap_=None):
 	glob.db.execute(
 		"UPDATE rx_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1, "
 		"playtime_{m} = playtime_{m} + %s "
-        "WHERE id = %s LIMIT 1".format(
+		"WHERE id = %s LIMIT 1".format(
             m=mode
         ),
         (score_.score, realMapLength, userID)
