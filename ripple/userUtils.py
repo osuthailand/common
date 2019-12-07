@@ -543,10 +543,10 @@ def updateStatsRx(userID, score_, beatmap_=None):
 
 	# Update total score, playcount and play time
 	realMapLength = beatmap_.hitLength
-    if (score_.mods & mods.DOUBLETIME) > 0:
-        realMapLength //= 1.5
-    elif (score_.mods & mods.HALFTIME) > 0:
-        realMapLength //= 0.75
+	if (score_.mods & mods.DOUBLETIME) > 0:
+		realMapLength //= 1.5
+	elif (score_.mods & mods.HALFTIME) > 0:
+		realMapLength //= 0.75
 	glob.db.execute(
 		"UPDATE rx_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1, "
 		"playtime_{m} = playtime_{m} + %s "
