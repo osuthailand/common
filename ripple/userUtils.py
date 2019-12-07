@@ -401,7 +401,7 @@ def calculatePP(userID, gameMode):
 		"WHERE userid = %s AND play_mode = %s AND completed = 3 AND ranked >= 2"
 		"ORDER BY pp DESC LIMIT 500",
 		(userID, gameMode)
-	)) if row["pp"] is not None)
+	)))
 
 def calculatePPRelax(userID, gameMode):
 	"""
@@ -416,7 +416,7 @@ def calculatePPRelax(userID, gameMode):
 		"WHERE userid = %s AND play_mode = %s AND completed = 3 AND ranked >= 2"
 		"ORDER BY pp DESC LIMIT 500",
 		(userID, gameMode)
-	)) if row["pp"] is not None)
+	)))
 
 def updateAccuracy(userID, gameMode):
 	"""
