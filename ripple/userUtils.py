@@ -404,7 +404,7 @@ def calculatePPRelax(userID, gameMode):
 	:return: total PP
 	"""
 	return sum(round(round(row["pp"]) * 0.95 ** i) for i, row in enumerate(glob.db.fetchAll(
-		"SELECT pp FROM scores LEFT JOIN(beatmaps) USING(beatmap_md5) "
+		"SELECT pp FROM scores_relax LEFT JOIN(beatmaps) USING(beatmap_md5) "
 		"WHERE userid = %s AND play_mode = %s AND completed = 3 AND ranked >= 2 "
 		"ORDER BY pp DESC LIMIT 500",
 		(userID, gameMode)
