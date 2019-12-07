@@ -520,13 +520,13 @@ def updateStats(userID, score_, beatmap_=None):
 		updatePP(userID, score_.gameMode)
 
 
-def updateStatsRx(userID, __score):
+def updateStatsRx(userID, score_):
 	"""
 	Update stats (playcount, total score, ranked score, level bla bla)
 	with data relative to a score object
 
 	:param userID:
-	:param __score: score object
+	:param score_: score object
 	"""
 
 	# Make sure the user exists
@@ -535,28 +535,28 @@ def updateStatsRx(userID, __score):
 		return
 
 	# Get gamemode for db
-	mode = scoreUtils.readableGameMode(__score.gameMode)
+	mode = scoreUtils.readableGameMode(score_.gameMode)
 
 	# Update total score and playcount
 	glob.db.execute(
 		"UPDATE rx_stats SET total_score_{m}=total_score_{m}+%s, playcount_{m}=playcount_{m}+1 WHERE id = %s LIMIT 1".format(
-			m=mode), [__score.score, userID])
+			m=mode), [score_.score, userID])
 
 	# Calculate new level and update it
-	updateLevelRX(userID, __score.gameMode)
+	updateLevelRX(userID, score_.gameMode)
 
 	# Update level, accuracy and ranked score only if we have passed the song
-	if __score.passed:
+	if score_.passed:
 		# Update ranked score
 		glob.db.execute(
 			"UPDATE rx_stats SET ranked_score_{m}=ranked_score_{m}+%s WHERE id = %s LIMIT 1".format(m=mode),
-			[__score.rankedScoreIncrease, userID])
+			[score_.rankedScoreIncrease, userID])
 
 		# Update accuracy
-		updateAccuracyRX(userID, __score.gameMode)
+		updateAccuracyRX(userID, score_.gameMode)
 
 		# Update pp
-		updatePPRelax(userID, __score.gameMode)
+		updatePPRelax(userID, score_.gameMode)
 
 def updateLatestActivity(userID):
 	"""
