@@ -411,21 +411,13 @@ def calculatePPRelax(userID, gameMode):
 	:param gameMode: game mode number
 	:return: total PP
 	"""
-	# Get best pp scores
-	bestPPScores = glob.db.fetchAll(
-		"SELECT pp FROM scores_relax WHERE userid = %s AND play_mode = %s AND completed = 3 ORDER BY pp DESC LIMIT 500",
-		[userID, gameMode])
+	return sum(round(round(row["pp"]) * 0.95 ** i) for i, row in enumerate(glob.db.fetchAll(
+		"SELECT pp FROM scores LEFT JOIN(beatmaps) USING(beatmap_md5) "
+		"WHERE userid = %s AND play_mode = %s AND completed = 3 AND ranked >= 2 AND (disable_pp = 0 OR ISNULL(disable_pp))"
+		"ORDER BY pp DESC LIMIT 500",
+		(userID, gameMode)
+	)) if row["pp"] is not None)
 
-	# Calculate weighted PP
-	totalPP = 0
-	if bestPPScores is not None:
-		k = 0
-		for i in bestPPScores:
-			new = round(round(i["pp"]) * 0.95 ** k)
-			totalPP += new
-			k += 1
-
-	return totalPP
 def updateAccuracy(userID, gameMode):
 	"""
 	Update accuracy value for userID relative to gameMode in DB
@@ -475,14 +467,13 @@ def updatePPRelax(userID, gameMode):
 	:param userID: user id
 	:param gameMode: game mode number
 	"""
-	# Make sure the user exists
-	# if not exists(userID):
-	#	return
-
-	# Get new total PP and update db
-	newPP = calculatePPRelax(userID, gameMode)
-	mode = scoreUtils.readableGameMode(gameMode)
-	glob.db.execute("UPDATE rx_stats SET pp_{}=%s WHERE id = %s LIMIT 1".format(mode), [newPP, userID])
+	glob.db.execute(
+		"UPDATE rx_stats SET pp_{}=%s WHERE id = %s LIMIT 1".format(scoreUtils.readableGameMode(gameMode)),
+		(
+			calculatePP(userID, gameMode),
+			userID
+		)
+	)
 
 def updateStats(userID, __score):
 	"""
