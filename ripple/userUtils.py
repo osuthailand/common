@@ -536,7 +536,7 @@ def updateStatsRx(userID, score_, beatmap_=None):
 		return
 		
 	if beatmap_ is None:
-        beatmap_ = objects.beatmap.beatmap(score_.fileMd5, 0)
+		beatmap_ = objects.beatmap.beatmap(score_.fileMd5, 0)
 
 	# Get gamemode for db
 	mode = scoreUtils.readableGameMode(score_.gameMode)
