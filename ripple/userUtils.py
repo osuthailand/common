@@ -21,6 +21,13 @@ def getBeatmapTime(beatmapID):
 		p = json.loads(r)['TotalLength']
  
 	return p
+
+def noPPLimit(userID, relax):
+	result = glob.db.fetch("SELECT unrestricted_pp FROM {rx}_stats WHERE id = {userid}".format(rx='rx' if relax else 'users', userid=userID))
+	return result['unrestricted_pp']
+
+def whitelistUserPPLimit(userID, rx):
+	glob.db.execute("UPDATE {rx}_stats SET unrestricted_pp = 1 WHERE id = {userid}".format(rx='rx' if rx else 'users', userid=userID))
  
 def incrementPlaytime(userID, gameMode=0, length=0):
 	modeForDB = gameModes.getGameModeForDB(gameMode)

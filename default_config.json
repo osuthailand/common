@@ -34,6 +34,7 @@
 	},
 	"lets": {
 		"submit": {
+			"max-vanilla-pp": 800,
 			"max-std-pp": 1000000,
 			"score-overwrite": "pp"
 		},
