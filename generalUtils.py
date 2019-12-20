@@ -154,6 +154,8 @@ def readableMods(__mods):
 		r += "FL"
 	if __mods & mods.SPUNOUT > 0:
 		r += "SO"
+	if __mods & mods.RELAX > 0:
+		r += "RX"
 
 	return r
 
