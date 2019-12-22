@@ -29,6 +29,9 @@ def PPBoard(userID, relax):
 def setPPBoard(userID, rx):
 	glob.db.execute("UPDATE {rx}_stats SET ppboard = 1 WHERE id = {userid}".format(rx='rx' if rx else 'users', userid=userID))
 
+def setScoreBoard(userID, rx):
+	glob.db.execute("UPDATE {rx}_stats SET ppboard = 0 WHERE id = {userid}".format(rx='rx' if rx else 'users', userid=userID))
+
 def noPPLimit(userID, relax):
 	result = glob.db.fetch("SELECT unrestricted_pp FROM {rx}_stats WHERE id = {userid}".format(rx='rx' if relax else 'users', userid=userID))
 	return result['unrestricted_pp']
