@@ -47,9 +47,6 @@
 			"APPROVED": true,
 			"QUALIFIED": true,
 			"LOVED": true
-		},
-		"scoreboard": {
-			"ppboard": true
 		}
 	}
 }
