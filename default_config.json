@@ -36,7 +36,8 @@
 		"submit": {
 			"max-vanilla-pp": 800,
 			"max-std-pp": 1000000,
-			"score-overwrite": "pp"
+			"score-overwrite": "pp",
+			"loved-dont-give-pp": false
 		},
 		"allowed-beatmap-rankstatus": {
 			"UNKNOWN": false,
@@ -48,5 +49,10 @@
 			"QUALIFIED": true,
 			"LOVED": true
 		}
+	},
+	"mode": {
+		"anticheat": true,
+		"rank-all-maps": false,
+		"no-pp-cap": false
 	}
 }
