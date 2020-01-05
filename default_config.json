@@ -49,5 +49,10 @@
 			"QUALIFIED": true,
 			"LOVED": true
 		}
+	},
+	"mode": {
+		"anticheat": true,
+		"rank-all-maps": false,
+		"no-pp-cap": false
 	}
 }
