@@ -1418,8 +1418,10 @@ def removeFromLeaderboard(userID):
 	country = getCountry(userID).lower()
 	for mode in ["std", "taiko", "ctb", "mania"]:
 		glob.redis.zrem("ripple:leaderboard:{}".format(mode), str(userID))
+		glob.redis.zrem("ripple:leaderboard_relax:{}".format(mode), str(userID))
 		if country is not None and len(country) > 0 and country != "xx":
 			glob.redis.zrem("ripple:leaderboard:{}:{}".format(mode, country), str(userID))
+			glob.redis.zrem("ripple:leaderboard_relax:{}:{}".format(mode, country), str(userID))
 
 def deprecateTelegram2Fa(userID):
 	"""
