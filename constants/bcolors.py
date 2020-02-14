@@ -1,4 +1,10 @@
 """Console colors"""
+from platform import system
+if "win" in system().lower(): #works for Win7, 8, 10 ...
+    from ctypes import windll
+    k=windll.kernel32
+    k.SetConsoleMode(k.GetStdHandle(-11),7)
+
 PINK 		= '\033[95m'
 BLUE 		= '\033[94m'
 GREEN 		= '\033[92m'
