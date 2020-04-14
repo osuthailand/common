@@ -1,21 +1,14 @@
-from common.constants import mods
+from common.constants import gameModes, mods
 from objects import glob
 
 def isRankable(m):
 	"""
 	Checks if `m` contains unranked mods
-
 	:param m: mods enum
 	:return: True if there are no unranked mods in `m`, else False
 	"""
-	# I am a wizard.... feel free to make sense of this and do a better job (merge req are welcome)
-	if "_unranked-mods" not in glob.conf.extra:
-		glob.conf.extra["_unranked-mods"] = sum([getattr(mods, key) for key, value in
-												glob.conf.extra["common"]["rankable-mods"].items() if not value
-												]) # Store the unranked mods mask into glob
-
-	# I know bitmasks... so get that old trash out of here ktnxbye
-	return m & ~glob.conf.extra["_unranked-mods"] == m and m & 8320 != 8320
+	# TODO: Check other modes unranked mods ...?
+	return not ((m & mods.RELAX2 > 0) or (m & mods.AUTOPLAY > 0))
 
 def readableGameMode(gameMode):
 	"""
@@ -66,3 +59,42 @@ def readableMods(m):
 	if m & mods.RELAX > 0:
 		r += "RX"
 	return r
+
+def updateRankCounter(rank, gameMode, userID):
+	"""
+	This updates the users rank counter.
+	So I don't have to struggle doing the work of counting in golang :nausated_face:
+	"""
+	if rank == "F":
+		return False
+	if rank == "F":
+		return False
+	elif rank == "D":
+		return False
+	elif rank == "C":
+		return False
+	elif rank == "B":
+		return False
+	else:
+		modeForDB = gameModes.getGameModeForDB(gameMode)
+		glob.db.execute("""
+			UPDATE users_rank SET {rank}_{gameMode}={rank}_{gameMode}+1 WHERE userid = %s LIMIT 1""".format(rank=rank, gameMode=modeForDB), [userID])
+
+def updateRankCounterRX(rank, gameMode, userID):
+	"""
+	This updates the users rank counter.
+	So I don't have to struggle doing the work of counting in golang :nausated_face:
+	"""
+	modeForDB = gameModes.getGameModeForDB(gameMode)
+
+	if rank == "F":
+		return False
+	elif rank == "D":
+		return False
+	elif rank == "C":
+		return False
+	elif rank == "B":
+		return False
+	else:
+		glob.db.execute("""
+			UPDATE rx_rank SET {rank}_{gameMode}={rank}_{gameMode}+1 WHERE userid = %s LIMIT 1""".format(rank=rank, gameMode=modeForDB), [userID])
