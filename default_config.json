@@ -54,6 +54,7 @@
 	"mode": {
 		"anticheat": true,
 		"rank-all-maps": false,
-		"no-pp-cap": false
+		"no-pp-cap": false,
+		"peppyday": true
 	}
 }
