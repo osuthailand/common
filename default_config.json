@@ -49,6 +49,11 @@
 			"APPROVED": true,
 			"QUALIFIED": true,
 			"LOVED": true
+		},
+		"windows-mode": {
+			"enabled": false,
+			"oppai-rx-pp-path": "",
+			"oppai-ng-pp-path": ""
 		}
 	},
 	"mode": {
