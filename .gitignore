@@ -1,6 +1,8 @@
 **/build
 **/__pycache__
 .idea
+*.html
+*.pyd
 *.c
 *.so
 config.json
