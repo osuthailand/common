@@ -875,7 +875,7 @@ def incrementReplaysWatchedRX(userID, gameMode):
 		"UPDATE rx_stats SET replays_watched_{mode}=replays_watched_{mode}+1 WHERE id = %s LIMIT 1".format(
 			mode=mode), [userID])
 
-def incrementReplaysWatchedRX(userID, gameMode):
+def incrementReplaysWatchedRX2(userID, gameMode):
 	"""
 	Increment userID's replays watched by others relative to gameMode
 
